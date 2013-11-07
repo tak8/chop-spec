@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# chop-spec - Chops a W3C specification document into text chunks.
+#
+##############################################################################
+# Copyright (C) 2013  Cable Television Laboratories, Inc.
+# Contact: http://www.cablelabs.com/
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+# IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CABLELABS OR ITS CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+##############################################################################
+
+KEEPTMP=no
+case "$1" in
+    --keeptmp)
+    KEEPTMP=yes
+    shift
+    ;;
+esac
+
+IN="$1"
+OUT_TAGGED="$2"
+OUT_IDS="$3"
+
+case "$IN:$OUT_TAGGED:$OUT_IDS" in
+    *.html:*.html:*.xml)
+    ;;
+
+    *)
+    echo "Usage: $0 IN_SPEC.html OUT_TAGGED.html OUT_IDS.xml" 1>&2
+    exit 1
+    ;;
+esac
+
+
+################
+
+D=`dirname $0`
+P=$D/pass
+V=$D/verify-xsltproc.xsl
+T=_tmp_$$
+
+DONE=no
+xsltproc $V $V | cmp $V -                                          \
+    && sed -f           $P-0.sed  "$IN"              >$T-0.xml     \
+    && xsltproc --html  $P-1.xsl  $T-0.xml           >$T-1.xml     \
+    && xsltproc         $P-2.xsl  $T-1.xml           >$T-2.xml     \
+    && xsltproc         $P-3.xsl  $T-2.xml           >$T-3.xml     \
+    && xsltproc         $P-4.xsl  $T-3.xml           >$T-4.xml     \
+    && xsltproc         $P-5.xsl  $T-4.xml           >$T-5.xml     \
+    && xsltproc         $P-6.xsl  $T-5.xml           >$T-6.xml     \
+    && python           $P-7.py   $T-6.xml           >$T-7.xml     \
+    && python           $P-8.py   $T-7.xml $T-1.xml  >$T-8.xml     \
+    && xsltproc         $P-i.xsl  $T-7.xml           >$OUT_IDS     \
+    && xsltproc         $P-h.xsl  $T-8.xml           >$OUT_TAGGED  \
+    && DONE=yes
+
+case $KEEPTMP in
+    no) rm -f $T-*;;
+esac
+
+case $DONE in
+    yes)
+    echo "$0: Produced tagged spec ($OUT_TAGGED) and ID list ($OUT_IDS)" 1>&2
+    exit 0
+    ;;
+
+    *)
+    rm -f "$OUT_TAGGED" "$OUT_IDS"
+    echo "$0: Can't process $IN" 1>&2
+    exit 1
+    ;;
+esac

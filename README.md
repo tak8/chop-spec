@@ -15,9 +15,18 @@ Usage Example
 chop-spec requires `xsltproc` and `python`.
 
     $ wget --output-document=original.html http://www.w3.org/TR/2012/CR-html5-20121217/document-metadata.html
-    $ chop-spec original.html tagged.html ids.xml
+    $ /path/to/chop-spec/chop-spec original.html tagged.html ids.xml
+    _tmp_5600-0.xml:370: HTML parser error : Tag nav invalid
+      <nav class="prev_next">
+                            ^
+    /path/to/chop-spec/chop-spec: Produced tagged spec (tagged.html) and ID list (ids.xml)
 
-Now open `tagged.html` with a browser, feed `ids.xml` into database, etc.
+You might see some HTML parser errors, but as long as seeing the
+"Produced ..." message, it's okay.  If it's not okay, you'll see "Can't
+process ..." message.
+
+Now open `tagged.html` with a browser, feed `ids.xml` into your text
+editor or database, etc.
 
 
 Processing Details
@@ -30,8 +39,8 @@ chop-spec chops the input document into text chunks roughly by [Grouping
 Content](http://www.w3.org/TR/html5/grouping-content.html#grouping-content)
 such as `<p>`s and `<li>`s.  An exception is `<table>`s.  It flattens
 each `<table>` into a single text chunk by joining all of its cells
-using `&#13;` as delimiter.  This might be arguable, but chopping them
-down to cells is too choppy IMO.
+using `&#13;` as delimiter.  This might be arguable, but splitting them
+down to cells is too choppy in my opinion.
 
 It associates each text chunk to the preceding heading
 (`<h1>`...`<h6>`).  The document structure drawn by `<section>`s and
@@ -42,8 +51,8 @@ Trimming
 --------
 
 It removes text decorations such as `<strong>` and `<a>` from text
-chunks, shrinks whitespaces in them, and encodes them in US-ASCII with
-XML character references.
+chunks, squeezes whitespaces, and encodes in US-ASCII with XML character
+references.
 
 It skips parts of spec that appear nonnormative (e.g. sections saying
 "nonnormative", examples, unnumbered sections).
@@ -72,6 +81,7 @@ Bugs, limitations, TODOs, ...:
   `&`s will cause a problem for example.
 * Handling of some HTML elements such as `<secion>` and `<table>` might
   need some improvement.
+* Doesn't support specs in XHTML such as SVG.
 
 
 License
