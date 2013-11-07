@@ -20,6 +20,7 @@ chop-spec requires `xsltproc` and `python`.
       <nav class="prev_next">
                             ^
     /path/to/chop-spec/chop-spec: Produced tagged spec (tagged.html) and ID list (ids.xml)
+    $
 
 You might see some HTML parser errors, but as long as seeing the
 "Produced ..." message, it's okay.  If it's not okay, you'll see "Can't
